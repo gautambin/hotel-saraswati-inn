@@ -22,11 +22,18 @@ async fn main() {
         .route("/style.css", get(css))
         .route("/contact", post(contact));
 
-    let listener = tokio::net::TcpListener::bind("127.0.0.1:3000")
+    // Render provides the PORT environment variable.
+    // For local testing, it falls back to port 3000.
+    let port = std::env::var("PORT")
+        .unwrap_or_else(|_| "3000".to_string());
+
+    let addr = format!("0.0.0.0:{}", port);
+
+    let listener = tokio::net::TcpListener::bind(&addr)
         .await
         .unwrap();
 
-    println!("Website running at http://127.0.0.1:3000");
+    println!("Website running at http://{}", addr);
 
     axum::serve(listener, app)
         .await
@@ -57,7 +64,9 @@ async fn contact(Form(data): Form<ContactForm>) -> Html<String> {
         <html>
         <head>
             <meta charset="UTF-8">
+            <meta name="viewport" content="width=device-width, initial-scale=1.0">
             <title>Enquiry Received</title>
+
             <style>
                 body {{
                     font-family: Arial, sans-serif;
